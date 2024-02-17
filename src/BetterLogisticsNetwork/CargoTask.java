@@ -11,7 +11,7 @@ import mindustry.type.*;
 
 public class CargoTask {
 
-    public UnitType unitType = AlloyUnitTypes.transfer;
+    public UnitType unitType = BLUnitTypes.transfer;
     public Building source;
     public Building target;
     public Item itemType = Items.copper;

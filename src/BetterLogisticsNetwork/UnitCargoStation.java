@@ -25,12 +25,12 @@ import static mindustry.Vars.*;
 
 public class UnitCargoStation extends UnitCargoBlock {
 
-    public UnitType unitType = AlloyUnitTypes.transfer;
+    public UnitType unitType = BLUnitTypes.transfer;
     public int maxUnit = 1;
     public float linkRange = 30f;
     public float range = 20f;
     public float buildTime = 300f;
-    public Color baseColor = AlloyColors.frozenLight;
+    public Color baseColor = Color.valueOf("a3b1ff");
     public float polyStroke = 1.8f, polyRadius = 8f;
     public int polySides = 6;
     public float polyRotateSpeed = 1f;
