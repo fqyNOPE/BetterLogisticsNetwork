@@ -1,0 +1,9 @@
+package BetterLogisticsNetwork;
+public static class BlThings {
+    public Block cargoStation,cargoStorager,cargoRequeter;
+    public UnitType transfer;
+    public void load(){
+
+    }
+
+}

@@ -1,6 +1,6 @@
 package BetterLogisticsNetwork;
 
-import BetterLogisticsNetwork.AlloyUnitTypes;
+import BetterLogisticsNetwork.*;
 import arc.func.Cons;
 import arc.math.Mat;
 import arc.struct.*;
