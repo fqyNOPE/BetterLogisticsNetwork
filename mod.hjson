@@ -1,23 +1,15 @@
-#the mod name as displayed in-game
-displayName: "Java Mod Template"
+displayName: "BetterLogisticsNetwork"
 
-#the internal name of your mod
-name: "example-java-mod"
+name: "bNetwork"
 
-#your name
-author: "You"
+author: "无量级萌新重构工厂/fqyNOPE"
 
-#the fully qualified main class of the mod
-main: "example.ExampleJavaMod"
+main: "BetterLogisticsNetwork.BetterLogisticsNetworkMod"
 
-#the mod description as seen in the mod dialog
-description: "A Mindustry Java mod template."
+description: "Do you often angry with stupid CargoUnitAI in Mindustry?Try this!More efficient and smarter AI in Better Logistics Network!"
 
-#the mod version
 version: 1.0
 
-#the minimum game build required to run this mod
 minGameVersion: 145
 
-#this is a java mod
 java: true
