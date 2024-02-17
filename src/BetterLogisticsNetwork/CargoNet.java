@@ -1,6 +1,5 @@
 package BetterLogisticsNetwork;
 
-import BetterLogisticsNetwork.CargoUnitAbility;
 import arc.struct.*;
 import arc.util.Log;
 import mindustry.gen.*;
@@ -75,7 +74,7 @@ public class CargoNet {
             }
         }
         for(var task : tasks){
-            if(task.remainAmount <= 0){
+            if(task.remainAmount <= 0 || task.source == null || task.target == null){
                 tasks.remove(task);
             }
         }
@@ -89,6 +88,7 @@ public class CargoNet {
                         if(task.workingUnits.size < task.maxUnit){
                             task.workingUnits.addUnique(unit);
                             cargoAbility.task = task;
+                            break;
                         }
                     }
                 }
@@ -106,7 +106,7 @@ public class CargoNet {
                 CargoTask task = new CargoTask(building, b, item, Math.min(building.items.get(item), amount));
                 if (canAddTask(b)) {
                     tasks.addUnique(task);
-                    Log.info("addTask: " + task.source + "->" + task.target + " Item: " + item.name + " Amount:" + Math.min(building.items.get(item),amount));
+                    //Log.info("addTask: " + task.source + "->" + task.target + " Item: " + item.name + " Amount:" + Math.min(building.items.get(item),amount));
                 }
                 break;
             }

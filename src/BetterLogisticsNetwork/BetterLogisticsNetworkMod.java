@@ -17,8 +17,8 @@ public class BetterLogisticsNetworkMod extends Mod{
 
     @Override
     public void loadContent(){
-        BLThings.load();
         BLUnitTypes.load();
+        BLThings.load();
     }
 
 }

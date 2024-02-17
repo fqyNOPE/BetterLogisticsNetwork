@@ -1,6 +1,5 @@
 package BetterLogisticsNetwork;
 
-import BetterLogisticsNetwork.*;
 import arc.Events;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -66,13 +65,13 @@ public class UnitCargoStation extends UnitCargoBlock {
 
     public class UnitCargoStationBuild extends UnitCargoBlockBuild {
         public CargoNet cnet = new CargoNet();
-        public boolean base = false, inited = false;
+        public boolean base = false, inited = false,tileInited = true;
         public Seq<UnitCargoStationBuild> fromStation = new Seq<>();
         public UnitCargoStationBuild toStation;
         public int lastChange = -1;
         public float spawnProgress = 0f, totalProgress = 0f;
         public float warmup, readyness;
-        public int[] readUnitIds = new int[32];
+        public Seq<Integer> readUnitIds = new Seq<>();
         public @Nullable Seq<Unit> units = new Seq<>();
 
         @Override
@@ -116,8 +115,9 @@ public class UnitCargoStation extends UnitCargoBlock {
                     netAdd(this);
                 }
             }
-            if (lastChange != world.tileChanges) {
+            if (lastChange != world.tileChanges || !tileInited) {
                 lastChange = world.tileChanges;
+                tileInited = true;
                 indexer.eachBlock(this.team(), Tmp.r1.setCentered(x, y, range * tilesize), b -> (b instanceof UnitCargoBlockBuild) && !(b instanceof UnitCargoStationBuild), b -> {
                     netAdd(b);
                     ((UnitCargoBlockBuild) b).station = this;
@@ -126,25 +126,36 @@ public class UnitCargoStation extends UnitCargoBlock {
             if (base && netUpdate) cnet.update();
 
             units.forEach(u -> {
-                if (u != null && (u.dead && !u.isAdded())) units.remove(u);
+                if (u != null && (u.dead && !u.isAdded())) {
+                    units.remove(u);
+                    getNet().cargoUnits.remove(u);
+                }
             });
 
-            for (int i = 0; i < readUnitIds.length; i++) {
-                int readUnitId = readUnitIds[i];
+            readUnitIds.forEach(readUnitId ->{
                 if (readUnitId != -1) {
                     Unit unit = Groups.unit.getByID(readUnitId);
+                    if (unit == null){
+                        if (!net.client()) {
+                            readUnitIds.remove(readUnitId);
+                        }
+                        return;
+                    }
                     if (!units.contains(unit)) {
+                        unit.abilities = new Ability[]{new CargoUnitAbility()};
+                        ((CargoUnitAbility) unit.abilities[0]).station = this;
                         units.addUnique(unit);
-                        if (unit != null || !net.client()) {
-                            readUnitIds[i] = -1;
+                        getNet().cargoUnits.addUnique(unit);
+                        if (!net.client()) {
+                            readUnitIds.remove(readUnitId);
                         }
                     }
 
                 }
-            }
+            });
 
             warmup = Mathf.approachDelta(warmup, efficiency, 1f / 60f);
-            if (efficiency > 0 && units.size <= maxUnit && Units.canCreate(team, unitType)) {
+            if (efficiency > 0 && units.size < maxUnit && Units.canCreate(team, unitType)) {
                 spawnProgress += edelta() / buildTime;
                 totalProgress += edelta();
                 if (spawnProgress >= 1f) {
@@ -165,14 +176,9 @@ public class UnitCargoStation extends UnitCargoBlock {
 
         public void spawned(int id) {
             Fx.spawn.at(x, y);
+            totalProgress = 0f;
             spawnProgress = 0f;
-            for (int i = 0; i < readUnitIds.length; i++) {
-                int readUnitId = readUnitIds[i];
-                if (readUnitId == -1) {
-                    readUnitIds[i] = id;
-                }
-            }
-
+            if(!readUnitIds.contains(id))readUnitIds.addUnique(id);
         }
 
 
@@ -212,8 +218,6 @@ public class UnitCargoStation extends UnitCargoBlock {
                     unit.kill();
                 }
             }
-
-
         }
 
         public CargoNet getNet() {
@@ -231,10 +235,23 @@ public class UnitCargoStation extends UnitCargoBlock {
         @Override
         public void buildConfiguration(Table table) {
             table.button(Icon.upOpen, Styles.cleari, () -> {
-                for (int i = 0; i < content.items().size; i++) {
-                    if (getNet().items[i] > 0)
-                        Log.info("item:" + content.items().get(i) + "amount:" + getNet().items[i]);
+                for (var task : getNet().tasks) {
+                    Log.info("Task: " + task.source + "->" + task.target + " Item: " + task.itemType.name + " Amount:" + task.amount + "      "+ task.workingUnits.size);
                 }
+                Log.info("////////////////////");
+                for (var unit : getNet().cargoUnits) {
+                    if (unit.abilities.length == 0 || !(unit.abilities[0] instanceof CargoUnitAbility cargoAbility)) {
+                        continue;
+                    }
+                    if (cargoAbility.task != null) {
+                        Log.info("UnitTask: " + cargoAbility.task.source + "->" + cargoAbility.task.target + " Item: " + cargoAbility.task.itemType.name + " Amount:" + cargoAbility.task.amount);
+                    }
+                    else{
+                        Log.info("UnitTask: null");
+                    }
+                }
+
+                Log.info("---------------------");
                 deselect();
             }).size(40f);
         }
@@ -270,8 +287,13 @@ public class UnitCargoStation extends UnitCargoBlock {
         @Override
         public void write(Writes write) {
             super.write(write);
+            for(Unit unit : units){
+                if(unit == null){
+                    units.remove(unit);
+                }
+            }
             write.i(units.size);
-            for (Unit unit : units) write.i(unit == null ? -1 : unit.id);
+            for (Unit unit : units) write.i(unit.id);
         }
 
         @Override
@@ -279,8 +301,10 @@ public class UnitCargoStation extends UnitCargoBlock {
             super.read(read, revision);
             var usize = read.i();
             for (int i = 0; i < usize; i++) {
-                readUnitIds[i] = read.i();
+                int ii = read.i();
+                readUnitIds.addUnique(ii);
             }
+            tileInited = false;
         }
 
     }
