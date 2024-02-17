@@ -26,7 +26,7 @@ public class UnitCargoStation extends UnitCargoBlock {
 
     public UnitType unitType = BLUnitTypes.transfer;
     public int maxUnit = 1;
-    public float linkRange = 30f;
+    public float linkRange = 40f;
     public float range = 20f;
     public float buildTime = 300f;
     public Color baseColor = Color.valueOf("a3b1ff");
