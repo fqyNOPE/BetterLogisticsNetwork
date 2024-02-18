@@ -35,15 +35,15 @@ public class BLThings {
     public static void load(){
         cargoStation = new UnitCargoStation("cargo-station"){{
             size = 3;
-            requirements(Category.distribution, with(Items.copper, 2));
+            requirements(Category.distribution, with(Items.silicon, 275, Items.phaseFabric, 25, Items.plastanium, 75, Items.surgeAlloy, 55));
         }};
         cargoRequeter = new UnitCargoRequester("cargo-requester"){{
             size = 2;
-            requirements(Category.distribution, with(Items.copper, 2));
+            requirements(Category.distribution,  with(Items.silicon, 75,Items.plastanium, 50, Items.surgeAlloy, 5));
         }};
         cargoStorager = new UnitCargoStorager("cargo-storager"){{
             size = 2;
-            requirements(Category.distribution, with(Items.copper, 2));
+            requirements(Category.distribution,  with(Items.silicon, 45,Items.plastanium, 25, Items.surgeAlloy, 5));
         }};
     }
 

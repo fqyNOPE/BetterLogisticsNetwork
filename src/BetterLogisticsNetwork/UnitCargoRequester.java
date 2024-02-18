@@ -11,7 +11,7 @@ import mindustry.world.blocks.*;
 import static mindustry.Vars.*;
 public class UnitCargoRequester extends UnitCargoBlock {
 
-    public TextureRegion topRegion = Core.atlas.find("unit-cargo-unload-point-top");
+    //public TextureRegion topRegion = Core.atlas.find("unit-cargo-unload-point-top");
     public UnitCargoRequester(String name){
         super(name);
         hasItems = true;
@@ -29,7 +29,7 @@ public class UnitCargoRequester extends UnitCargoBlock {
 
             if(item != null){
                 Draw.color(item.color);
-                Draw.rect(topRegion, x, y);
+                Draw.rect(item.fullIcon,x,y);
                 Draw.color();
             }
         }
