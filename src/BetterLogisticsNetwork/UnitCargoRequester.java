@@ -17,6 +17,7 @@ public class UnitCargoRequester extends UnitCargoBlock {
         hasItems = true;
         configurable = true;
         itemCapacity = 100;
+        saveConfig = true;
         config(Item.class, (UnitCargoRequesterBuild build, Item item) -> build.item = item);
         configClear((UnitCargoRequesterBuild build) -> build.item = null);
     }
