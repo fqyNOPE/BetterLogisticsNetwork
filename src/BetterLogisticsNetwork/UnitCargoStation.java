@@ -37,7 +37,7 @@ public class UnitCargoStation extends UnitCargoBlock {
 
     public UnitCargoStation(String name) {
         super(name);
-        configurable = true;
+        configurable = false;
         update = true;
         solid = true;
         sync = true;
