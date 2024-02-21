@@ -6,6 +6,8 @@ import arc.scene.ui.layout.*;
 import mindustry.gen.Building;
 import mindustry.gen.Teamc;
 import mindustry.type.*;
+import arc.util.*;
+import arc.util.io.*;
 import mindustry.world.blocks.*;
 
 import static mindustry.Vars.*;
@@ -16,7 +18,7 @@ public class UnitCargoRequester extends UnitCargoBlock {
         super(name);
         hasItems = true;
         configurable = true;
-        itemCapacity = 100;
+        itemCapacity = 200;
         saveConfig = true;
         config(Item.class, (UnitCargoRequesterBuild build, Item item) -> build.item = item);
         configClear((UnitCargoRequesterBuild build) -> build.item = null);
@@ -47,6 +49,19 @@ public class UnitCargoRequester extends UnitCargoBlock {
         @Override
         public Object config(){
             return item;
+        }
+
+        @Override
+        public void write(Writes write){
+            super.write(write);
+            write.s(item == null ? -1 : item.id);
+        }
+
+        @Override
+        public void read(Reads read, byte revision){
+            super.read(read, revision);
+            int id = read.s();
+            item = id == -1 ? null : content.item(id);
         }
     }
 }

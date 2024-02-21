@@ -8,7 +8,7 @@ public class UnitCargoStorager extends UnitCargoBlock {
     public UnitCargoStorager(String name){
         super(name);
         hasItems = true;
-        itemCapacity = 100;
+        itemCapacity = 200;
     }
 
     public class UnitCargoStoragerBuild extends UnitCargoBlockBuild{

@@ -26,7 +26,7 @@ public class UnitCargoStation extends UnitCargoBlock {
 
     public UnitType unitType = BLUnitTypes.transfer;
     public int maxUnit = 1;
-    public float linkRange = 40f;
+    public float linkRange = 30f;
     public float range = 20f;
     public float buildTime = 300f;
     public Color baseColor = Color.valueOf("a3b1ff");
@@ -37,7 +37,7 @@ public class UnitCargoStation extends UnitCargoBlock {
 
     public UnitCargoStation(String name) {
         super(name);
-        configurable = false;
+        configurable = true;
         update = true;
         solid = true;
         sync = true;
@@ -53,26 +53,26 @@ public class UnitCargoStation extends UnitCargoBlock {
 
         final float dx = x, dy = y;
         Drawf.dashSquare(baseColor, x, y, range * tilesize);
-        indexer.eachBlock(player.team(), Tmp.r1.setCentered(x, y, linkRange * tilesize), b -> (b instanceof UnitCargoStationBuild), t -> {
-            Drawf.dashLine(Pal.placing,
-                    dx,
-                    dy,
-                    t.x,
-                    t.y
-            );
-        });
+        indexer.eachBlock(player.team(), Tmp.r1.setCentered(x, y, linkRange * tilesize),
+                b -> (b instanceof UnitCargoStationBuild), t -> {
+                    Drawf.dashLine(Pal.placing,
+                            dx,
+                            dy,
+                            t.x,
+                            t.y);
+                });
     }
 
     public class UnitCargoStationBuild extends UnitCargoBlockBuild {
         public CargoNet cnet = new CargoNet();
-        public boolean base = false, inited = false,tileInited = true;
+        public boolean base = false, inited = false, tileInited = true;
         public Seq<UnitCargoStationBuild> fromStation = new Seq<>();
         public UnitCargoStationBuild toStation;
         public int lastChange = -1;
         public float spawnProgress = 0f, totalProgress = 0f;
         public float warmup, readyness;
         public Seq<Integer> readUnitIds = new Seq<>();
-        public @Nullable Seq<Unit> units = new Seq<>();
+        public Seq<Unit> units = new Seq<>();
 
         @Override
         public void updateTile() {
@@ -80,111 +80,112 @@ public class UnitCargoStation extends UnitCargoBlock {
             boolean netUpdate = true;
             if (!inited) {
                 inited = true;
-                indexer.eachBlock(this.team(), Tmp.r1.setCentered(x, y, linkRange * tilesize), b -> (b instanceof UnitCargoStationBuild) && b != this, b -> {
-                    if ((b instanceof UnitCargoStationBuild build) && build.inited) {
-                        if (toStation == null) {
-                            toStation = build;
-                            build.fromStation.addUnique(this);
-                            netAdd(this);
-                        } else {
-                            if (getNet() != build.getNet()) {
-                                getNet().merge(build.getNet());
-                                UnitCargoStationBuild station = build;
-                                Seq<UnitCargoStationBuild> list = new Seq<>();
-                                while (!station.base && station.toStation != null) {
-                                    list.addUnique(station);
-                                    station = station.toStation;
-                                }
-                                list.addUnique(station);
-                                station.base = false;
-                                for (int i = list.size - 1; i > 0; i--) {
-                                    list.get(i).toStation = list.get(i - 1);
-                                    list.get(i).fromStation.remove(list.get(i - 1));
-                                    if (i != list.size - 1) {
-                                        list.get(i).fromStation.addUnique(list.get(i + 1));
+                indexer.eachBlock(this.team(), Tmp.r1.setCentered(x, y, linkRange * tilesize),
+                        b -> (b instanceof UnitCargoStationBuild) && b != this, b -> {
+                            if ((b instanceof UnitCargoStationBuild build) && build.inited) {
+                                if (toStation == null) {
+                                    toStation = build;
+                                    build.fromStation.addUnique(this);
+                                    netAdd(this);
+                                } else {
+                                    if (getNet() != build.getNet()) {
+                                        getNet().merge(build.getNet());
+                                        UnitCargoStationBuild station = build;
+                                        Seq<UnitCargoStationBuild> list = new Seq<>();
+                                        while (!station.base && station.toStation != null) {
+                                            list.addUnique(station);
+                                            station = station.toStation;
+                                        }
+                                        list.addUnique(station);
+                                        station.base = false;
+                                        for (int i = list.size - 1; i > 0; i--) {
+                                            list.get(i).toStation = list.get(i - 1);
+                                            list.get(i).fromStation.remove(list.get(i - 1));
+                                            if (i != list.size - 1) {
+                                                list.get(i).fromStation.addUnique(list.get(i + 1));
+                                            }
+                                        }
+                                        build.toStation = this;
                                     }
                                 }
-                                build.toStation = this;
                             }
-                        }
-                    }
-                });
+                        });
                 if (toStation == null) {
                     base = true;
                     netUpdate = false;
                     netAdd(this);
                 }
+                for (var unit : units) {
+                    if (unit != null && !getNet().cargoUnits.contains(unit)) {
+                        getNet().cargoUnits.addUnique(unit);
+                    }
+                }
             }
             if (lastChange != world.tileChanges || !tileInited) {
                 lastChange = world.tileChanges;
                 tileInited = true;
-                indexer.eachBlock(this.team(), Tmp.r1.setCentered(x, y, range * tilesize), b -> (b instanceof UnitCargoBlockBuild) && !(b instanceof UnitCargoStationBuild), b -> {
-                    netAdd(b);
-                    ((UnitCargoBlockBuild) b).station = this;
-                });
+                indexer.eachBlock(this.team(), Tmp.r1.setCentered(x, y, range * tilesize),
+                        b -> (b instanceof UnitCargoBlockBuild) && !(b instanceof UnitCargoStationBuild), b -> {
+                            netAdd(b);
+                            ((UnitCargoBlockBuild) b).station = this;
+                        });
             }
-            if (base && netUpdate) cnet.update();
-
-            units.forEach(u -> {
-                if (u != null && (u.dead && !u.isAdded())) {
-                    units.remove(u);
-                    getNet().cargoUnits.remove(u);
+            if (base && netUpdate)
+                cnet.update();
+            for (Unit unit : units) {
+                if (unit != null && (unit.dead && !unit.isAdded())) {
+                    units.remove(unit);
+                    getNet().cargoUnits.remove(unit);
                 }
-            });
+            }
 
-            readUnitIds.forEach(readUnitId ->{
+            for (int readUnitId : readUnitIds) {
                 if (readUnitId != -1) {
                     Unit unit = Groups.unit.getByID(readUnitId);
-                    if (unit == null){
+                    if (unit == null) {
                         if (!net.client()) {
                             readUnitIds.remove(readUnitId);
                         }
-                        return;
-                    }
-                    if (!units.contains(unit)) {
-                        unit.abilities = new Ability[]{new CargoUnitAbility()};
-                        ((CargoUnitAbility) unit.abilities[0]).station = this;
-                        units.addUnique(unit);
-                        getNet().cargoUnits.addUnique(unit);
-                        if (!net.client()) {
-                            readUnitIds.remove(readUnitId);
+                    } else {
+                        if (units.size == 0 || !units.contains(unit)) {
+                            unit.abilities = new Ability[] { new CargoUnitAbility() };
+                            ((CargoUnitAbility) unit.abilities[0]).station = this;
+                            units.addUnique(unit);
+                            getNet().cargoUnits.addUnique(unit);
+                            if (!net.client()) {
+                                readUnitIds.remove(readUnitId);
+                            }
                         }
                     }
-
                 }
-            });
+            }
 
             warmup = Mathf.approachDelta(warmup, efficiency, 1f / 60f);
-            if (efficiency > 0 && units.size < maxUnit && Units.canCreate(team, unitType)) {
+            if (efficiency > 0 && units.size <= maxUnit && Units.canCreate(team, unitType)) {
                 spawnProgress += edelta() / buildTime;
                 totalProgress += edelta();
                 if (spawnProgress >= 1f) {
                     Unit u = unitType.create(this.team);
                     u.set(x, y);
                     u.rotation = 90;
-                    u.abilities = new Ability[]{new CargoUnitAbility()};
+                    u.abilities = new Ability[] { new CargoUnitAbility() };
                     ((CargoUnitAbility) u.abilities[0]).station = this;
                     getNet().cargoUnits.addUnique(u);
+                    spawned(u);
                     Events.fire(new EventType.UnitCreateEvent(u, this, u));
                     if (!Vars.net.client()) {
                         u.add();
                     }
-                    spawned(u.id);
+
                 }
             }
         }
 
-        public void spawned(int id) {
+        public void spawned(Unit unit) {
             Fx.spawn.at(x, y);
             totalProgress = 0f;
             spawnProgress = 0f;
-            if(!readUnitIds.contains(id))readUnitIds.addUnique(id);
-        }
-
-
-        @Override
-        public void onProximityAdded() {
-            super.onProximityAdded();
+            units.addUnique(unit);
         }
 
         @Override
@@ -195,9 +196,11 @@ public class UnitCargoStation extends UnitCargoBlock {
                 Drawf.dashLine(baseColor, x, y, toStation.x, toStation.y);
             }
             for (var station : fromStation) {
-                var baseColor2 = Pal.accent;
-                Drawf.selected(station, Tmp.c1.set(baseColor2).a(Mathf.absin(4f, 1f)));
-                Drawf.dashLine(baseColor2, x, y, station.x, station.y);
+                if (station != null) {
+                    var baseColor2 = Pal.accent;
+                    Drawf.selected(station, Tmp.c1.set(baseColor2).a(Mathf.absin(4f, 1f)));
+                    Drawf.dashLine(baseColor2, x, y, station.x, station.y);
+                }
             }
             Drawf.dashSquare(baseColor, x, y, range * tilesize);
         }
@@ -236,7 +239,8 @@ public class UnitCargoStation extends UnitCargoBlock {
         public void buildConfiguration(Table table) {
             table.button(Icon.upOpen, Styles.cleari, () -> {
                 for (var task : getNet().tasks) {
-                    Log.info("Task: " + task.source + "->" + task.target + " Item: " + task.itemType.name + " Amount:" + task.amount + "      "+ task.workingUnits.size);
+                    Log.info("Task: " + task.source + "->" + task.target + " Item: " + task.itemType.name + " Amount:"
+                            + task.amount + "      " + task.workingUnits.size);
                 }
                 Log.info("////////////////////");
                 for (var unit : getNet().cargoUnits) {
@@ -244,9 +248,9 @@ public class UnitCargoStation extends UnitCargoBlock {
                         continue;
                     }
                     if (cargoAbility.task != null) {
-                        Log.info("UnitTask: " + cargoAbility.task.source + "->" + cargoAbility.task.target + " Item: " + cargoAbility.task.itemType.name + " Amount:" + cargoAbility.task.amount);
-                    }
-                    else{
+                        Log.info("UnitTask: " + cargoAbility.task.source + "->" + cargoAbility.task.target + " Item: "
+                                + cargoAbility.task.itemType.name + " Amount:" + cargoAbility.task.amount);
+                    } else {
                         Log.info("UnitTask: null");
                     }
                 }
@@ -287,13 +291,14 @@ public class UnitCargoStation extends UnitCargoBlock {
         @Override
         public void write(Writes write) {
             super.write(write);
-            for(Unit unit : units){
-                if(unit == null){
+            for (Unit unit : units) {
+                if (unit == null) {
                     units.remove(unit);
                 }
             }
             write.i(units.size);
-            for (Unit unit : units) write.i(unit.id);
+            for (Unit unit : units)
+                write.i(unit.id);
         }
 
         @Override
@@ -308,6 +313,5 @@ public class UnitCargoStation extends UnitCargoBlock {
         }
 
     }
-
 
 }

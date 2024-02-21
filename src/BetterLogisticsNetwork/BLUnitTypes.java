@@ -27,11 +27,11 @@ public class BLUnitTypes {
         transfer = new UnitType("transfer"){{
             armor = 8f;
             health = 600;
-            speed = 2f;
-            rotateSpeed = 2f;
+            speed = 3.5f;
+            rotateSpeed = 3f;
             accel = 0.05f;
             drag = 0.017f;
-            itemCapacity = 20;
+            itemCapacity = 40;
             lowAltitude = false;
             constructor = UnitEntity::create;
             flying = true;

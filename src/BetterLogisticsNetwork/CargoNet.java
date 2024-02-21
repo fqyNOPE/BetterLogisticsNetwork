@@ -64,7 +64,11 @@ public class CargoNet {
     }
 
     public void update() {
+        for (Building building : storagers){
+            if(building.dead)storagers.remove(building);
+        }
         for (Building building : requesters) {
+            if(building.dead)requesters.remove(building);
             if ((building instanceof UnitCargoRequesterBuild build)) {
                 if (build.item == null) continue;
                 int amount = build.block.itemCapacity - build.items.get(build.item);
@@ -79,17 +83,27 @@ public class CargoNet {
             }
         }
         for(var unit : cargoUnits){
-            if(unit !=null){
+            if(unit !=null && !unit.dead){
                 if (unit.abilities.length == 0 || !(unit.abilities[0] instanceof CargoUnitAbility cargoAbility)) {
                     continue;
                 }
                 if(cargoAbility.task == null){
                     for(var task : tasks){
                         if(task.workingUnits.size < task.maxUnit){
-                            task.workingUnits.addUnique(unit);
+                            tasks.get(tasks.indexOf(task)).workingUnits.addUnique(unit);
                             cargoAbility.task = task;
                             break;
                         }
+                    }
+                }
+            }
+            else{
+                cargoUnits.remove(unit);
+                for(var task : tasks){
+                    if(task.workingUnits.contains(unit)){
+                        var t = task;
+                        t.workingUnits.remove(unit);
+                        tasks.replace(task,t);
                     }
                 }
             }

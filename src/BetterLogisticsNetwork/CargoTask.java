@@ -27,7 +27,7 @@ public class CargoTask {
         this.itemType = itemType;
         this.amount = amount;
         this.remainAmount = amount;
-        maxUnit = Math.max((int)Math.ceil((float)(amount / unitType.itemCapacity)),1) ;
+        maxUnit = amount / unitType.itemCapacity + ((amount % unitType.itemCapacity > 0)? 1 : 0) + 1;
     }
     public void handleTask(Unit unit, int amount) {
         this.remainAmount -= amount;

@@ -28,5 +28,11 @@ public class UnitCargoBlock extends Block {
             if(station != null)station.getNet().hasChanged = true;
         }
 
+        @Override
+        public void onProximityRemoved(){
+            super.onProximityRemoved();
+            dead = true;
+        }
+
     }
 }
